@@ -63,7 +63,7 @@ fi
 T1_seg_subcortex="${dir_volum}/${BIDSanat}_space-nativepro_t1w_atlas-subcortical.nii.gz"
 T1_seg_cerebellum="${dir_volum}/${BIDSanat}_space-nativepro_t1w_atlas-cerebellum.nii.gz"
 
-### CHECK INPUTS: rsfMRI, phase encoding, structural proc, topup and ICA-FIX files
+### CHECK INPUTS: task fmri , phase encoding, structural proc, topup and ICA-FIX files
 Info "Inputs:"
 Note "Topup Config     :" "$changeTopupConfig"
 Note "ICA fix training :" "$changeIcaFixTraining"
@@ -84,6 +84,8 @@ else
     Info "Using user provided main scan: ${subject_bids}/func/${idBIDS}_${taskScanStr}"
     mainScan=$(ls "${subject_bids}/func/${idBIDS}_${taskScanStr}".nii* 2>/dev/null)
     taskScanJson=$(ls "${subject_bids}/func/${idBIDS}_${taskScanStr}".json 2>/dev/null)
+    echo $mainScan
+    echo $taskScanJson
 fi
 # If no json is found search at the top BIDS directory
 if [[ -z ${taskScanJson} ]]; then taskScanJson="${BIDS}/task-rest_bold.json"; fi
@@ -120,7 +122,7 @@ if [[ "$fmri_pe" != DEFAULT ]] && [[ -f "$fmri_pe" ]]; then mainPhaseScan="$fmri
 if [[ "$fmri_rpe" != DEFAULT ]] && [[ -f "$fmri_rpe" ]]; then reversePhaseScan="$fmri_rpe"; fi
 
 # Check inputs
-if [ ! -f "$mainScan" ]; then Error "Couldn't find $id main task fMRI scan : \n\t ls ${mainScan}"; exit; fi #Last check to make sure file exists
+if [ ! -f "$mainScan" ]; then Error "Couldn't find $id main task fMRI scan : \n\t ls ${mainScan} Warning: If file exist in the directory, check if taskScanStr is correctly spelled blah test"; exit; fi #Last check to make sure file exists
 if [ ! -f "$taskScanJson" ]; then Error "Couldn't find $id main rsfMRI scan json file: \n\t ls ${taskScanJson}"; exit; fi #Last check to make sure file exists
 if [ -z "$mainPhaseScan" ]; then  Warning "Subject $id doesn't have acq-APse_bold: TOPUP will be skipped"; fi
 if [ -z "$reversePhaseScan" ]; then Warning "Subject $id doesn't have acq-PAse_bold: TOPUP will be skipped"; fi
@@ -181,13 +183,13 @@ if [[ -z "$readoutTime" ]]; then Warning "readoutTime is missing in $taskScanJso
 if [[ -z "$RepetitionTime" ]]; then Error "RepetitionTime is missing in $taskScanJson $RepetitionTime"; exit; fi
 
 #------------------------------------------------------------------------------#
-Title "Resting state fMRI processing\n\t\tmicapipe $Version, $PROC "
+Title "Task fMRI processing\n\t\tmicapipe $Version, $PROC "
 micapipe_software
-bids_print.variables-rsfmri
+bids_print.variables-taskfmri
 Info "Saving temporal dir: $nocleanup"
 Info "ANTs will use $threads threads"
 Info "wb_command will use $OMP_NUM_THREADS threads"
-# rsfMRI directories
+# taskfmri directories
 if [[ ${fmri_acq} == "TRUE" ]]; then
   fmri_tag=$(echo $mainScan | awk -F ${idBIDS}_ '{print $2}' | cut -d'.' -f1); fmri_tag=${fmri_tag/_bold/}
   tagMRI="${fmri_tag}"
@@ -220,6 +222,7 @@ for x in "$rsfmri_surf" "$rsfmri_volum"; do
     [[ ! -d "${x}" ]] && mkdir -p "${x}"
 done
 
+exit
 #------------------------------------------------------------------------------#
 # Begining of the REAL processing
 # Scans to process
@@ -576,6 +579,10 @@ else
 fi
 
 #------------------------------------------------------------------------------#
+# 3d Deconvolution 
+
+
+#------------------------------------------------------------------------------#
 # Register to surface
 # If three surfaces are found skipp this step
 Nsurf=$(ls "${rsfmri_surf}/${idBIDS}"_rsfmri_space-fsnative_?h.mgh \
@@ -767,6 +774,6 @@ Title "rsfMRI processing and post processing ended in \033[38;5;220m $(printf "%
 \tCheck logs      : $(ls "${dir_logs}"/proc_rsfmri_*.txt)"
 if [[ ${fmri_acq} == "FALSE" ]]; then
     grep -v "${id}, ${SES/ses-/}, proc_rsfmri" "${out}/micapipe_processed_sub.csv" > "${tmp}/tmpfile" && mv "${tmp}/tmpfile" "${out}/micapipe_processed_sub.csv"
-    echo "${id}, ${SES/ses-/}, proc_rsfmri, ${status}, $(printf "%02d" "$Nsteps")/21, $(whoami), $(uname -n), $(date), $(printf "%0.3f\n" "$eri"), ${PROC}, ${Version}" >> "${out}/micapipe_processed_sub.csv"
+    #echo "${id}, ${SES/ses-/}, proc_rsfmri, ${status}, $(printf "%02d" "$Nsteps")/21, $(whoami), $(uname -n), $(date), $(printf "%0.3f\n" "$eri"), ${PROC}, ${Version}" >> "${out}/micapipe_processed_sub.csv"
 fi
 cleanup "$tmp" "$nocleanup" "$here"
