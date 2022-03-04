@@ -103,6 +103,8 @@ echo -e "
 \t\t\t\t         ( default is non linear registration SyN )
 \t\t\033[38;5;120m-fmri_acq\033[0m            : Use this flag if you have a rsfMRI already processed and you wish to process a new fMRI volume.
 \t\t\t\t         ( this will create a new directory with the outputs func/acq-<fMRI> )
+\t\t\033[38;5;120m-dropTR\033[0m            : when using this option the first 5-TR volumes of the rsfMRI and the Task will be removed.
+\t\t\t\t         ( default = no TR removing )
 
 \t\t\033[38;5;120m-taskScanStr\033[0m         : String(s) to manually identify the main scan(s) for task-fMRI processing (eg. func/sub-001_<mainScanStr>.nii.gz)
 \t\t\t\t         eg. 'task-spatial_acq-AP_bold'
@@ -292,6 +294,10 @@ do
     fmri_acq=TRUE
     shift
   ;;
+  -dropTR)
+    dropTR=TRUE
+    shift
+  ;;
   -post_structural)
     postVOL=TRUE
     shift
@@ -472,6 +478,7 @@ if [[ $smoothWB == "TRUE" ]]; then wbSmoothing=1; else wbSmoothing=0; fi
 if [[ $NSR == "TRUE" ]]; then performNSR=1; else performNSR=0; fi
 if [[ $GSReg == "TRUE" ]]; then performGSR=1; else performGSR=0; fi
 if [[ $skipFIX == "TRUE" ]]; then noFIX=1; else noFIX=0; fi
+if [[ $dropTR == "TRUE" ]]; then dropTR=TRUE; else dropTR=FALSE; fi
 if [ -z "$mainScanStr" ]; then mainScanStr=DEFAULT; fi
 if [ -z "$fmri_pe" ]; then fmri_pe=DEFAULT; else fmri_pe=$(realpath $fmri_pe); fi
 if [ -z "$fmri_rpe" ]; then fmri_rpe=DEFAULT; else fmri_rpe=$(realpath $fmri_rpe); fi
@@ -865,7 +872,7 @@ fi
 #  Resting state
 if [ "$ALL" = "TRUE" ] || [ "$procfMRI" = "TRUE" ]; then
     log_file_str=$dir_logs/proc_rsfmri_$(date +'%d-%m-%Y')
-    COMMAND="${scriptDir}/02_proc-rsfmri.sh $BIDS $id $out $SES $nocleanup $threads $tmpDir ${optarg_rsfmri[0]} ${optarg_rsfmri[1]} ${optarg_rsfmri[2]} ${optarg_rsfmri[3]} ${wbSmoothing} ${mainScanStr} ${fmri_pe} ${fmri_rpe} ${performNSR} ${performGSR} ${noFIX} ${sesAnat} ${regAffine} ${fmri_acq}"
+    COMMAND="${scriptDir}/02_proc-rsfmri.sh $BIDS $id $out $SES $nocleanup $threads $tmpDir ${optarg_rsfmri[0]} ${optarg_rsfmri[1]} ${optarg_rsfmri[2]} ${optarg_rsfmri[3]} ${wbSmoothing} ${mainScanStr} ${fmri_pe} ${fmri_rpe} ${performNSR} ${performGSR} ${noFIX} ${sesAnat} ${regAffine} ${fmri_acq} ${dropTR}"
     # mica.q - Resting state fMRI processing
     if [[ $micaq == "TRUE" ]]; then
         Info "MICA qsub - Resting state fMRI processing"
@@ -894,7 +901,7 @@ fi
 #  Task fMRI
 if [ "$ALL" = "TRUE" ] || [ "$procTask" = "TRUE" ]; then
     log_file_str=$dir_logs/proc_rsfmri_$(date +'%d-%m-%Y')
-    COMMAND="${scriptDir}/02_proc-task.sh $BIDS $id $out $SES $nocleanup $threads $tmpDir ${optarg_rsfmri[0]} ${optarg_rsfmri[1]} ${optarg_rsfmri[2]} ${optarg_rsfmri[3]} ${wbSmoothing} ${taskScanStr} ${fmri_pe} ${fmri_rpe} ${performNSR} ${performGSR} ${noFIX} ${sesAnat} ${regAffine} ${fmri_acq}"
+    COMMAND="${scriptDir}/02_proc-task.sh $BIDS $id $out $SES $nocleanup $threads $tmpDir ${optarg_rsfmri[0]} ${optarg_rsfmri[1]} ${optarg_rsfmri[2]} ${optarg_rsfmri[3]} ${wbSmoothing} ${taskScanStr} ${fmri_pe} ${fmri_rpe} ${performNSR} ${performGSR} ${noFIX} ${sesAnat} ${regAffine} ${fmri_acq} ${dropTR}"
     # mica.q - Task fMRI processing
     if [[ $micaq == "TRUE" ]]; then
         Info "MICA qsub - Task fMRI processing"
