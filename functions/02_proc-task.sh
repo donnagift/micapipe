@@ -85,8 +85,7 @@ else
     Info "Using user provided main scan: ${subject_bids}/func/${idBIDS}_${taskScanStr}"
     mainScan=$(ls "${subject_bids}/func/${idBIDS}_${taskScanStr}".nii* 2>/dev/null)
     taskScanJson=$(ls "${subject_bids}/func/${idBIDS}_${taskScanStr}".json 2>/dev/null)
-    echo $mainScan
-    echo $taskScanJson
+
 fi
 # If no json is found search at the top BIDS directory
 if [[ -z ${taskScanJson} ]]; then taskScanJson="${BIDS}/task-rest_bold.json"; fi
@@ -193,17 +192,20 @@ Info "wb_command will use $OMP_NUM_THREADS threads"
 # taskfmri directories
 if [[ ${fmri_acq} == "TRUE" ]]; then
   fmri_tag=$(echo $mainScan | awk -F ${idBIDS}_ '{print $2}' | cut -d'.' -f1); fmri_tag=${fmri_tag/_bold/}
-  tagMRI="${fmri_tag}"
+  tagMRI="${proc_taskfmri}"
   proc_taskfmri="$subject_dir/func/${fmri_tag}"
   Info "Outputs will be stored in:"
   Note "fMRI path:" "${proc_taskfmri}"
+
 else
   tagMRI="taskfmri"
+  proc_taskfmri="$subject_dir/func/${fmri_tag}"
 fi
 Note "tagMRI:      " "${tagMRI}"
 #	Timer
 aloita=$(date +%s)
 Nsteps=0
+
 # Create script specific temp directory
 tmp="${tmpDir}/${RANDOM}_micapipe_proc-taskfmri_${idBIDS}"
 Do_cmd mkdir -p "$tmp"
@@ -213,9 +215,8 @@ trap 'cleanup $tmp $nocleanup $here' SIGINT SIGTERM
 
 # Define directories
 export SUBJECTS_DIR="$dir_surf"
-
-taskfmri_volum="${proc_taskfmri}/volumetric"   # volumetricOutputDirectory
-taskfmri_surf="${proc_taskfmri}/surfaces"      # surfaceOutputDirectory
+taskfmri_volum="${proc_taskfmri}/$taskScanStr/volumetric"   # volumetricOutputDirectory
+taskfmri_surf="${proc_taskfmri}/$taskScanStr/surfaces"      # surfaceOutputDirectory
 taskfmri_ICA="$proc_taskfmri/ICA_MELODIC"      # ICAOutputDirectory
 
 # Make directories - exit if processing directory already exists (to prevent deletion of existing files at the end of this script).
