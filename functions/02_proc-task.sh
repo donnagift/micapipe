@@ -217,7 +217,7 @@ trap 'cleanup $tmp $nocleanup $here' SIGINT SIGTERM
 export SUBJECTS_DIR="$dir_surf"
 taskfmri_volum="${proc_taskfmri}/$taskScanStr/volumetric"   # volumetricOutputDirectory
 taskfmri_surf="${proc_taskfmri}/$taskScanStr/surfaces"      # surfaceOutputDirectory
-taskfmri_ICA="$proc_taskfmri/ICA_MELODIC"      # ICAOutputDirectory
+taskfmri_ICA="$proc_taskfmri/$taskScanStr/ICA_MELODIC"      # ICAOutputDirectory
 
 # Make directories - exit if processing directory already exists (to prevent deletion of existing files at the end of this script).
 for x in "$taskfmri_surf" "$taskfmri_volum"; do
@@ -719,7 +719,7 @@ if [[ ! -f "$timese_subcortex" ]] ; then
       Info "Getting subcortical timeseries"
       Do_cmd antsApplyTransforms -d 3 -i "$T1_seg_subcortex" -r "$fmri_mean" -n GenericLabel  "${transformsInv}" -o "$taskfmri_subcortex" -v -u int
       # Extract subcortical timeseries
-      # Output: ascii text file with number of rows equal to the number of frames and number of columns equal to the number of segmentations reported
+      # Output: ascii textis this correct? file with number of rows equal to the number of frames and number of columns equal to the number of segmentations reported
       Do_cmd mri_segstats --i "$fmri_processed" --seg "$taskfmri_subcortex" --exclude 0 --exclude 16 --avgwf "$timese_subcortex"
       if [[ -f "$timese_subcortex" ]] ; then ((Nsteps++)); fi
 else
