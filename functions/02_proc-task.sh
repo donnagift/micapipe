@@ -1,6 +1,6 @@
 #!/bin/bash
-# Task processing
-# Written by
+# Task fMRI processing adapted and modified from the resting state processing module
+# Written by Donna Gift Cabalo March 2022
 #
 #
 #
@@ -732,7 +732,7 @@ taskfmri_cerebellum="${taskfmri_volum}/${idBIDS}_space-taskfmri_desc-singleecho_
 timese_cerebellum="${taskfmri_volum}/${idBIDS}_space-taskfmri_desc-singleecho_timeseries_cerebellum.txt"
 stats_cerebellum="${taskfmri_volum}/${idBIDS}_space-taskfmri_desc-singleecho_cerebellum_roi_stats.txt"
 
-if [[ ! -f "$timese_cerebellum" ]] ; then
+if [[ ! -f "$timese_cerbellum" ]] ; then
       Info "Getting cerebellar timeseries"
       Do_cmd antsApplyTransforms -d 3 -i "$T1_seg_cerebellum" -r "$fmri_mean" -n GenericLabel "${transformsInv}" -o "$taskfmri_cerebellum" -v -u int
       # Extract cerebellar timeseries (mean, one ts per segemented structure, exluding nuclei because many are too small for our resolution)
@@ -754,7 +754,7 @@ cleanTS="${taskfmri_surf}/${idBIDS}_taskfmri_space-conte69-32k_desc-timeseries_c
 if [[ ! -f "$cleanTS" ]] ; then
     Info "Running Task fMRI post processing"
     labelDirectory="${dir_freesurfer}/label/"
-    Do_cmd python "$MICAPIPE"/functions/03_FC.py "$idBIDS" "$proc_taskfmri" "$labelDirectory" "$util_parcelations" "$dir_volum" "$performNSR" "$performGSR"
+    Do_cmd python "$MICAPIPE"/functions/03_FC.py "$idBIDS" "${proc_taskfmri}/$taskScanStr" "$labelDirectory" "$util_parcelations" "$dir_volum" "$performNSR" "$performGSR" "taskfmri"
     if [[ -f "$cleanTS" ]] ; then ((Nsteps++)); fi
 else
     Info "Subject ${id} has post-processed conte69 time-series"; ((Nsteps++))
