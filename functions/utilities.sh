@@ -182,6 +182,21 @@ bids_print.variables-rsfmri() {
   Note "ICA-FIX training   =" $(find "$icafixTraining" 2>/dev/null)
 }
 
+#Donna addition tentative
+bids_print.variables-taskfmri() {
+  # This functions prints BIDS variables names and files if found
+  Info "mica-pipe variables for task-fMRI processing:"
+  Note "T1 nativepro       =" "$(find "$T1nativepro" 2>/dev/null)"
+  Note "T1 freesurfer      =" "$(find "$T1freesurfr" 2>/dev/null)"
+  file.exist "Main taskfMRI        =" $mainScan
+  file.exist "Main taskfMRI json   =" $taskScanJson
+  file.exist "Main phase scan    =" $mainPhaseScan
+  file.exist "Main reverse phase =" $reversePhaseScan
+  Note "TOPUP config file  =" $(find "$topupConfigFile" 2>/dev/null)
+  Note "ICA-FIX training   =" $(find "$icafixTraining" 2>/dev/null)
+}
+## end here
+
 bids_variables_unset() {
   # This function unsets all the enviromentalk variables defined by
   # bids_variables
@@ -455,6 +470,46 @@ function json_rsfmri() {
     ]
   }" > "$1"
 }
+#Donna's additions
+function json_taskfmri() {
+  qform=$(fslhd "$fmri_processed" | grep qto_ | awk -F "\t" '{print $2}')
+  sform=$(fslhd "$fmri_processed" | grep sto_ | awk -F "\t" '{print $2}')
+  echo -e "{
+    \"micapipeVersion\": \"${Version}\",
+    \"LastRun\": \"$(date)\",
+    \"Class\": \"fMRI processed\",
+    \"Name\": \"${fmri_processed}\",
+    \"sform\": [
+\t\t\"${sform}\"
+      ],
+    \"qform\": [
+  \t\t\"${sform}\"
+      ],
+    \"Preprocess\": [
+      {
+        \"MainScan\": \"${mainScan}\",
+        \"Resample\": \"LPI\",
+        \"Reorient\": \"fslreorient2std\",
+        \"MotionCorrection\": \"3dvolreg AFNI $(afni -version | awk -F ':' '{print $2}')\",
+        \"MotionCorrection\": [\"${rsfmri_volum}/${idBIDS}_space-taskfmri_spikeRegressors_FD.1D\"],
+        \"MainPhaseScan\": \"${mainPhaseScan}\",
+        \"ReversePhaseScan\": \"${reversePhaseScan}\",
+        \"TOPUP\": \"${statusTopUp}\",
+        \"HighPassFilter\": \"${fmri_HP}\",
+        \"Passband\": \"0.01 666\",
+        \"RepetitionTime\": \"${RepetitionTime}\",
+        \"TotalReadoutTime\": \"${readoutTime}\",
+        \"Melodic\": \"${statusMel}\",
+        \"FIX\": \"${statusFIX}\",
+        \"Registration\": \"${reg}\",
+        \"GlobalSignalRegression\": \"${performGSR}\",
+        \"CSFWMSignalRegression\": \"${performNSR}\",
+        \"dropTR\": \"${dropTR}\"
+      }
+    ]
+  }" > "$1"
+}
+#end here
 
 function json_mpc() {
   qform=$(fslhd "$1" | grep qto_ | awk -F "\t" '{print $2}')
@@ -687,7 +742,46 @@ function QC_proc-rsfmri() {
                 <td class=\"tg-8pnm\">$(find "$icafixTraining" 2>/dev/null)</td>
               </tr>"   > "$html"
 }
-
+#Donna Add- to commit
+function QC_proc-taskfmri() {
+  html="$dir_QC"/micapipe_QC_proc-taskfmri.txt
+  if [ -f "$html" ]; then rm "$html"; fi
+  echo -e "            <tr>
+                <td class=\"tg-8pnm\"><span style=\"font-weight:bold\">mainScan</span></td>
+                <td class=\"tg-8pnm\">BIDS func<br><br></td>
+                <td class=\"tg-8pnm\">$(find "$mainScan" 2>/dev/null)</td>
+              </tr>
+              <tr>
+                <td class=\"tg-8pnm\"><span style=\"font-weight:bold\">bids_taskScanJson</span></td>
+                <td class=\"tg-8pnm\">BIDS func<br><br></td>
+                <td class=\"tg-8pnm\">$(find "$taskScanJson" 2>/dev/null)</td>
+              </tr>" >> "$html"
+            if [ -f "$mainPhaseScan" ]; then
+  echo -e "          <tr>
+                <td class=\"tg-8pnm\"><span style=\"font-weight:bold\">mainPhaseScan</span></td>
+                <td class=\"tg-8pnm\">BIDS func<br><br></td>
+                <td class=\"tg-8pnm\">$(find "$mainPhaseScan" 2>/dev/null)</td>
+              </tr>"  >> "$html"
+            fi
+            if [ -f "$reversePhaseScan" ]; then
+  echo -e "          <tr>
+                <td class=\"tg-8pnm\"><span style=\"font-weight:bold\">reversePhaseScan</span></td>
+                <td class=\"tg-8pnm\">BIDS func<br><br></td>
+                <td class=\"tg-8pnm\">$(find "$reversePhaseScan" 2>/dev/null)</td>
+              </tr>"  >> "$html"
+            fi
+  echo -e "          <tr>
+                <td class=\"tg-8pnm\"><span style=\"font-weight:bold\">topupConfigFile</span></td>
+                <td class=\"tg-8pnm\">Default/Defined<br><br></td>
+                <td class=\"tg-8pnm\">$(find "$topupConfigFile" 2>/dev/null)</td>
+              </tr>
+              <tr>
+                <td class=\"tg-8pnm\"><span style=\"font-weight:bold\">icafixTraining</span></td>
+                <td class=\"tg-8pnm\">Default/Defined<br><br></td>
+                <td class=\"tg-8pnm\">$(find "$icafixTraining" 2>/dev/null)</td>
+              </tr>"   > "$html"
+}
+#end of Donna's additions
 function QC_SC() {
   html=${dir_QC}/micapipe_QC_SC.txt
   if [ -f "$html" ]; then rm "$html"; fi
