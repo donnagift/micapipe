@@ -732,7 +732,7 @@ taskfmri_cerebellum="${taskfmri_volum}/${idBIDS}_space-taskfmri_desc-singleecho_
 timese_cerebellum="${taskfmri_volum}/${idBIDS}_space-taskfmri_desc-singleecho_timeseries_cerebellum.txt"
 stats_cerebellum="${taskfmri_volum}/${idBIDS}_space-taskfmri_desc-singleecho_cerebellum_roi_stats.txt"
 
-if [[ ! -f "$timese_cerbellum" ]] ; then
+if [[ ! -f "$timese_cerebellum" ]] ; then
       Info "Getting cerebellar timeseries"
       Do_cmd antsApplyTransforms -d 3 -i "$T1_seg_cerebellum" -r "$fmri_mean" -n GenericLabel "${transformsInv}" -o "$taskfmri_cerebellum" -v -u int
       # Extract cerebellar timeseries (mean, one ts per segemented structure, exluding nuclei because many are too small for our resolution)
