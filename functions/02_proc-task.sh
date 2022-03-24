@@ -1,10 +1,12 @@
 #!/bin/bash
-# Task fMRI processing adapted and modified from the resting state processing module
+# Task fMRI processing adapted and modified from the resting state processing module (rs module details below)
 # Written by Donna Gift Cabalo March 2022
-#
-#
-#
-#
+#Resting-state module information
+  # Written by Casey Paquola and Reinder Vos De Wael (Oct 2018).
+  # and a tiny bit from Sara (Feb 2019)...
+  # and a whole lot from Sara (August 2019)
+  # and incorporation to mica-pipe by Raul (August-September 2020)
+  # and addition of a bunch of fancy flags by Jessica (October-November 2020)
 
 umask 003
 BIDS=$1
@@ -579,11 +581,6 @@ else
     Info "Subject ${id} has a spike Regressors from fsl_motion_outliers"; ((Nsteps++))
 fi
 
-#------------------------------------------------------------------------------#
-# 3d Deconvolution
-
-
-#------------------------------------------------------------------------------#
 # Register to surface
 # If three surfaces are found skipp this step
 Nsurf=$(ls "${taskfmri_surf}/${idBIDS}"_taskfmri_space-fsnative_?h.mgh \
